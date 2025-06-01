@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acronymble Puzzle</title>
+    <style>
+        html {
+            box-sizing: border-box;
+        }
+        
+        *, *:before, *:after {
+            box-sizing: inherit;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f7fa;
+            margin: 0;
+            padding: 0;
+            position: relative;
+        }
+        
+        body::before {
+            content: '';
+            display: block;
+            height: 5px;
+            width: 100%;
+            background-color: #4a90e2;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        
+        h2 {
+            font-size: 1.8rem;
+            margin-top: 1.5rem;
+        }
+        
+        h3 {
+            font-size: 1.5rem;
+            margin-top: 1.2rem;
+        }
+        
+        .nav {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .nav-item {
+            padding: 10px 15px;
+            margin: 0 5px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: normal;
+        }
+        
+        .nav-item:hover {
+            background-color: #d0d0d0;
+        }
+        
+        .nav-item.active {
+            background-color: #4a90e2;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .instructions {
+            background-color: #f0f8ff;
+            border-left: 4px solid #4a90e2;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        
+        button {
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        button:hover {
+            background-color: #3a7bc8;
+        }
+        
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between; /* Changed from center to space-between */
+    margin-bottom: 20px;
+}
+
+/* New wrapper for the left buttons */
+.left-controls {
+    display: flex;
+    gap: 10px; /* Space between the left buttons */
+}
+        
+        .crossword-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .crossword-grid {
+            display: inline-block;
+            border: 2px solid black;
+            margin-bottom: 20px;
+        }
+        
+        .grid-row {
+            display: flex;
+            height: 35px;
+        }
+        
+        .grid-cell {
+            width: 35px;
+            height: 35px;
+            border: 1px solid #666;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f5f7fa;
+        }
+        
+        .solution-grid .grid-cell.empty {
+            background-color: #d9d9d9;
+        }
+        
+        .cell-number {
+            position: absolute;
+            top: 1px;
+            left: 2px;
+            font-size: 10px;
+            line-height: 1;
+        }
+        
+        .cell-input {
+            width: 100%;
+            height: 100%;
+            border: none;
+            text-align: center;
+            font-size: 18px;
+            text-transform: uppercase;
+            background: transparent;
+        }
+        
+        .cell-letter {
+            font-size: 18px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .cell-input:focus {
+            outline: none;
+            background-color: #e6f2ff;
+        }
+        
+        .grid-cell.correct {
+            background-color: rgba(76, 175, 80, 0.2);
+        }
+        
+        .grid-cell.incorrect {
+            background-color: rgba(244, 67, 54, 0.2);
+        }
+        
+        /* Updated tab styling */
+        .tabs {
+            display: flex;
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            border: 2px solid #4a90e2; /* Blue border */
+            border-bottom: none;
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+            background-color: #e0e0e0; /* Gray background for inactive */
+            color: #333; /* Black text for inactive */
+            font-weight: normal;
+            margin-right: 5px;
+        }
+        
+        .tab.active {
+            background-color: #4a90e2; /* Blue background for active */
+            color: white; /* White text for active */
+            font-weight: bold;
+        }
+        
+        /* Increased height for clues/answers boxes */
+        .clue-list, .answer-list {
+            height: 800px; /* Double the previously doubled height for 4x original */
+            overflow-y: auto;
+            padding: 15px;
+            border: 2px solid #4a90e2;
+            border-top: none;
+            margin-top: -2px; /* To connect with the tab border */
+        }
+        
+        .clue-item, .answer-item {
+            margin-bottom: 10px;
+            padding: 5px;
+            border-radius: 4px;
+        }
+        
+        .clue-item:hover, .answer-item:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .puzzle-container {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        @media (min-width: 768px) {
+            .puzzle-container {
+                flex-direction: row;
+                gap: 20px;
+            }
+            
+            .puzzle-grid {
+                flex-shrink: 0;
+            }
+            
+            .puzzle-clues, .puzzle-answers {
+                flex-grow: 1;
+            }
+        }
+        
+        .solution {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .quote-references {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .quote-item {
+            margin-bottom: 15px;
+        }
+        
+        .solution-page {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .solution-page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .solution-container {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .solution-grid-container {
+            margin-right: 30px;
+        }
+        
+        @media (min-width: 768px) {
+            .solution-container {
+                flex-direction: row;
+            }
+        }
+        
+        @media (max-width: 767px) {
+            .crossword-grid {
+                transform: scale(0.9);
+                transform-origin: top center;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .controls button {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+        
+        /* Apply the same blue top border to the solution page container */
+        #solution-page {
+            position: relative;
+        }
+        
+        #solution-page::before {
+            content: '';
+            display: block;
+            height: 5px;
+            width: 100%;
+            background-color: #4a90e2;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        
+        /* Solution page specific styles */
+        #solution-page .grid-cell:not(.empty) {
+            background-color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="main-container">
+        <h1 style="margin-bottom: 0;">Acronymble Puzzle</h1>
+        <h3 style="text-align: center; margin-top: 0; margin-bottom: 40px;">July 4 Edition</h3>
+
+        <div class="nav">
+            <div class="nav-item active" id="nav-home">Home</div>
+            <div class="nav-item" id="nav-puzzle">Puzzle</div>
+        </div>
+
+        <!-- Home Section -->
+        <section id="home" class="section">
+            <div class="card">
+                <h2>Welcome to Acronymble!</h2>
+                <p>
+                    Acronymble is a puzzle where each answer is an acronym. 
+The acronym is formed from the first letters of words that were spoken or written by historical figures in America's founding era.<br><br>For example, if the clue is "Paul Revere's warning that the British were coming," the quote would be:<br>
+"One if By Land, _ _ _ _," so the answer would be "TIBS."
+                </p>
+
+                <div style="text-align: center; margin-top: 20px;">
+                    <button id="play-puzzle-btn">Play the Puzzle</button>
+                </div>
+            </div>
+
+            <div class="instructions">
+                <h3>How to Play</h3>
+                <p>
+                    This puzzle does not require precise knowledge of historical quotes, but the clues include the source and date to encourage research on the topic.
+                </p>
+                <p>
+                    Enter letters in the puzzle and click “Check Answers.” The puzzle will turn red if wrong, green if correct.
+                </p>
+                <p>
+                    Play by yourself or with others and discuss the fundamental principles, concepts and warnings in the exact words of our Founding Fathers.
+                </p>
+            </div>
+
+
+            <div class="card">
+                <h2>About this Puzzle</h2>
+                                <p>
+                    The quotes in this puzzle represent the underlying principles of our Founding Fathers to create a free society that delivers national unity through the moral integrity of every individual.
+                </p>
+		<p>
+                    Greg Littleton is neither a historian nor affiliated with any political party.<br>
+                    littletog@gmail.com
+                </p>
+            </div>
+        </section>
+
+        <!-- Puzzle Section -->
+        <section id="puzzle" class="section hidden">
+            <div class="instructions">
+                <h3>How to Play</h3>
+                <p>
+                    This puzzle requires knowledge of historical quotes, but also encourages online research for quotes on the topic shown in the clue.
+                </p>
+                <p>
+                    The intention is to enjoy solving the puzzle, but also a fun process for rediscovering the underlying passions and warnings considered by our Founding Fathers, expressed clearly in their own words.
+                </p>
+            </div>
+
+        <div class="controls">
+            <div class="left-controls">
+                <button id="check-answers">Check Answers</button>
+                <button id="reset-puzzle">Reset Puzzle</button>
+            </div>
+            <button id="reveal-solution">Reveal Solution</button>
+        </div>
+
+            <div id="puzzle-play" class="puzzle-container">
+                <div class="puzzle-grid">
+                    <div id="crossword-grid" class="crossword-grid"></div>
+                </div>
+
+                <div class="puzzle-clues">
+                    <div class="tabs">
+                        <div class="tab active" data-tab="across-clues">Across Clues</div>
+                        <div class="tab" data-tab="down-clues">Down Clues</div>
+                    </div>
+
+                    <div id="across-clues" class="clue-list tab-content"></div>
+                    <div id="down-clues" class="clue-list tab-content hidden"></div>
+                </div>
+            </div>
+
+            <div id="quotes-section" class="quote-references hidden">
+                <h2>Quote References</h2>
+                
+                <div class="tabs">
+                    <div class="tab active" data-tab="across-quotes">Across</div>
+                    <div class="tab" data-tab="down-quotes">Down</div>
+                </div>
+
+                <div id="across-quotes" class="clue-list tab-content"></div>
+                <div id="down-quotes" class="clue-list tab-content hidden"></div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Solution Page (Hidden by default, shown when revealing solution) -->
+    <div id="solution-page" class="container hidden">
+        <div class="solution-page-header">
+            <h1>Acronymble Solution</h1>
+            <button id="back-to-puzzle-btn">Back to Puzzle</button>
+        </div>
+        
+        <div class="solution-container">
+            <div class="solution-grid-container">
+                <div id="solution-grid" class="crossword-grid solution-grid"></div>
+            </div>
+            
+            <div class="solution-clues">
+                <div class="tabs">
+                    <div class="tab active" data-tab="solution-across-clues">Across Answers</div>
+                    <div class="tab" data-tab="solution-down-clues">Down Answers</div>
+                </div>
+                
+                <div id="solution-across-clues" class="answer-list tab-content"></div>
+                <div id="solution-down-clues" class="answer-list tab-content hidden"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Puzzle data for the crossword
+        const puzzleData = {
+            "grid": [
+                [{"letter":"I","number":1},{"letter":"P","number":null},{"letter":"F","number":2},{"letter":"H","number":null},{"letter":"A","number":3},{"letter":"P","number":null},{"letter":"T","number":null},{"letter":"G","number":null},{"letter":"F","number":4},{"letter":"W","number":null},{"letter":"L","number":null},{"letter":"U","number":null},{"letter":"P","number":5}],
+                [{"letter":"I","number":null},{"letter":"#","number":null},{"letter":"M","number":null},{"letter":"#","number":null},{"letter":"I","number":null},{"letter":"#","number":null},{"letter":"#","number":null},{"letter":"#","number":null},{"letter":"O","number":null},{"letter":"#","number":null},{"letter":"#","number":null},{"letter":"#","number":null},{"letter":"M","number":null}],
+                [{"letter":"B","number":null},{"letter":"#","number":null},{"letter":"H","number":null},{"letter":"#","number":null},{"letter":"P","number":null},{"letter":"#","number":null},{"letter":"U","number":6},{"letter":"W","number":null},{"letter":"S","number":null},{"letter":"#","number":null},{"letter":"P","number":7},{"letter":"#","number":null},{"letter":"W","number":null}],
+                [{"letter":"S","number":null},{"letter":"#","number":null},{"letter":"V","number":null},{"letter":"#","number":null},{"letter":"T","number":null},{"letter":"#","number":null},{"letter":"D","number":8},{"letter":"W","number":null},{"letter":"F","number":null},{"letter":"#","number":null},{"letter":"P","number":null},{"letter":"#","number":null},{"letter":"F","number":null}],
+                [{"letter":"N","number":null},{"letter":"#","number":null},{"letter":"T","number":null},{"letter":"#","number":null},{"letter":"A","number":null},{"letter":"#","number":null},{"letter":"#","number":null},{"letter":"#","number":null},{"letter":"G","number":null},{"letter":"#","number":null},{"letter":"#","number":null},{"letter":"#","number":null},{"letter":"O","number":null}],
+                [{"letter":"E","number":null},{"letter":"#","number":null},{"letter":"H","number":null},{"letter":"#","number":9},{"letter":"F","number":null},{"letter":"N","number":null},{"letter":"P","number":null},{"letter":"#","number":null},{"letter":"T","number":null},{"letter":"#","number":null},{"letter":"T","number":10},{"letter":"#","number":null},{"letter":"T","number":null}],
+                [{"letter":"I","number":null},{"letter":"#","number":null},{"letter":"B","number":null},{"letter":"#","number":null},{"letter":"O","number":11},{"letter":"P","number":null},{"letter":"M","number":null},{"letter":"#","number":null},{"letter":"C","number":null},{"letter":"#","number":null},{"letter":"N","number":null},{"letter":"#","number":null},{"letter":"O","number":null}],
+                [{"letter":"I","number":null},{"letter":"#","number":null},{"letter":"#","number":null},{"letter":"#","number":null},{"letter":"A","number":null},{"letter":"#","number":null},{"letter":"#","number":null},{"letter":"#","number":null},{"letter":"O","number":null},{"letter":"#","number":null},{"letter":"#","number":null},{"letter":"#","number":null},{"letter":"T","number":null}],
+                [{"letter":"W","number":12},{"letter":"H","number":null},{"letter":"T","number":null},{"letter":"T","number":null},{"letter":"T","number":null},{"letter":"B","number":null},{"letter":"S","number":null},{"letter":"T","number":null},{"letter":"A","number":null},{"letter":"M","number":null},{"letter":"A","number":null},{"letter":"C","number":null},{"letter":"E","number":null}]
+            ],
+            "acrossClues": [
+                {"number":1,"clue":"Thomas Jefferson, in an 1802 letter to Thomas Cooper, on the dangers of a government with selfish motives.<br>\"_ _ _ _ for _ , if they can _ _ _ _ _ the _ of the people _ the _ of taking care of them.\"","answer":"<u>I predict future happiness</u> for <u>Americans</u>, if they can <u>prevent the government from wasting</u> the <u>labors</u> of the people <u>under</u> the <u>pretense</u> of taking care of them."},
+                
+                {"number":6,"clue":"With 8 across, Patrick Henry's Speech at the Virginia Convention, 1775, on the importance of bipartisanship.<br>\"_ _ _ , _ _ _ . Let us not split into factions which must destroy that union upon which our existence hangs.\"","answer":"<u>United we stand</u>, divided we fall. Let us not split into factions which must destroy that union upon which our existence hangs."},
+                
+                {"number":8,"clue":"With 6 across, Patrick Henry's Speech at the Virginia Convention, 1775, on the dangers of partisanship.<br>\"_ _ _ , _ _ _ . Let us not split into factions which must destroy that union upon which our existence hangs.\"","answer":"United we stand, <u>divided we fall</u>. Let us not split into factions which must destroy that union upon which our existence hangs."},
+                
+                {"number":9,"clue":"The first three words, with 11 across. George Washington's statement in first inaugural address, 1789, on the strength of our country.<br>\"The _ of our _ _ will be laid in the pure and immutable principles _ _ _.\"","answer":"The <u>foundation</u> of our <u>national policy</u> will be laid in the pure and immutable principles of private morality."},
+                
+                {"number":11,"clue":"The last 3 words, with 9 across. George Washington's statement in first inaugural address, 1789, on the source of that strength.<br>\"The _ of our _ _ will be laid in the pure and immutable principles _ _ _ .\"","answer":"The foundation of our national policy will be laid in the pure and immutable principles <u>of private morality</u>."},
+                
+                {"number":12,"clue":"The opening sentence of the preamble to the Declaration of Independence, written by Thomas Jefferson, 1776.","answer":"<u>We hold these truths to be self-evident, that all men are created equal.<u>"}
+            ],
+            "downClues": [
+                {"number":1,"clue":"Thomas Paine's 1776 comment in <i>Common Sense</i> on the difference potential extremes of government's role in society.<br>\n\n\"Society in every state is a blessing, but government even _ _ _ _ is but a _ _ ; _ _ _ state an intolerable one.\"","answer":"Society in every state is a blessing, but government even <u>in its best state</u> is but a <u>necessary evil</u>; <u>in its worst</u> state an intolerable one."},
+                
+                {"number":2,"clue":"A letter from George Washington to Major-General Schuyler in 1776, describing the scarcity of men with sufficient honor to serve at the highest levels in government.<br>\"_ _ _ _ _ withstand the _ _.\"","answer":"<u>Few men have virtue to</u> withstand the <u>highest bidder</u>."},
+                
+                {"number":3,"clue":"James Madison, in an 1822 letter to W.T. Barry, lamenting the consequences without freedom of the press.<br>\"A popular Government, without popular information, or the means of _ _ , is but a _ _ _ _ _ _ _; or, perhaps both.\"","answer":"A popular Government, without popular information, or the means of <u>acquiring it</u>, is but a <u>Prologue to a Farce or a Tragedy</u>; or, perhaps both."},
+                
+                {"number":4,"clue":"Benjamin Franklin's 1737 publication in <i>The Pennsylvania Gazette</i>, on a free society's dependence on freedom of the press.<br>\"_ _ _ is a principal pillar of a _ _ : When this support is taken away, _ _ _ _ free society is dissolved.\"","answer":"<u>Freedom of speech</u> is a principal pillar of a <u>free government</u>: When this support is taken away, <u>the constitution of a</u> free society is dissolved."},
+                
+                {"number":5,"clue":"Samuel Adams' letter to James Warren in 1779 on the importance of civility in maintaining a free society.<br>\"A general dissolution of _ _ _ will more surely _ _ _ _ _ than the whole force of the common _ .\"","answer":"A general dissolution of <u>principles and manners</u> will more surely <u>overthrow the liberties of America</u> than the whole force of the common <u>enemy</u>."},
+                
+                {"number":7,"clue":"George Washington's warning in his 1796 farewell address to be on alert for false integrity.<br>\"Guard against the impostures of _ _.\"","answer":"Guard against the impostures of <u>pretended patriotism</u>."},
+                
+                {"number":10,"clue":"Addressing the Hebrew Congregation in Newport, Rhode Island, 1790, stating the importance for unity as citizens in a free society regardless of religious affiliations.<br>\"The Government of the United States, which gives to bigotry no sanction, _ _ _ _ , requires only that they who live under its protection should demean themselves as good citizens.\"","answer":"The Government of the United States, which gives to bigotry no sanction, <u>to persecution no assistance</u>, requires only that they who live under its protection should demean themselves as good citizens."}
+            ]
+        };
+
+        // Make these specific changes to your puzzle data:
+        // 1. Change row 5 (6th row), column 4 (5th column) to have number 9:
+        puzzleData.grid[5][4] = {"letter":"F","number":9};
+        // 2. Change row 5 (6th row), column 10 (11th column) to have number 10:
+        puzzleData.grid[5][10] = {"letter":"T","number":10};
+        // 3. Remove number from row 6 (7th row), column 10 (11th column):
+        puzzleData.grid[6][10] = {"letter":"N","number":null};
+        // 4. Fix row 7 (8th row), column 10 (11th column) to ensure it's not black:
+        puzzleData.grid[7][10] = {"letter":"N","number":null};
+
+        // 5. Change the letters for 5 down column:
+        puzzleData.grid[0][12] = {"letter":"P","number":5};  // Row 1, Column 13 (0-indexed as [0][12])
+        puzzleData.grid[1][12] = {"letter":"A","number":null}; // Row 2, Column 13
+        puzzleData.grid[2][12] = {"letter":"M","number":null}; // Row 3, Column 13
+        puzzleData.grid[3][12] = {"letter":"O","number":null}; // Row 4, Column 13
+        puzzleData.grid[4][12] = {"letter":"T","number":null}; // Row 5, Column 13
+        puzzleData.grid[5][12] = {"letter":"L","number":null}; // Row 6, Column 13
+        puzzleData.grid[6][12] = {"letter":"O","number":null}; // Row 7, Column 13
+        puzzleData.grid[7][12] = {"letter":"A","number":null}; // Row 8, Column 13
+        puzzleData.grid[8][12] = {"letter":"E","number":null}; // Row 9, Column 13
+        puzzleData.grid[6][10] = {"letter":"P","number":null}; // Row 7, Column 11
+
+        // DOM Elements
+        let crosswordGrid;
+        let solutionGrid;
+        let acrossClues;
+        let downClues;
+        let solutionAcrossClues;
+        let solutionDownClues;
+        let acrossQuotes;
+        let downQuotes;
+        
+        let checkAnswersBtn;
+        let resetPuzzleBtn;
+        let revealSolutionBtn;
+        let backToPuzzleBtn;
+        
+        let mainContainer;
+        let solutionPage;
+        let puzzlePlay;
+        let quotesSection;
+
+        // Wait for the DOM to be fully loaded before initializing
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize main containers
+            mainContainer = document.getElementById('main-container');
+            solutionPage = document.getElementById('solution-page');
+            
+            // Initialize navigation
+            document.getElementById('nav-home').addEventListener('click', function() {
+                showSection('home');
+            });
+            document.getElementById('nav-puzzle').addEventListener('click', function() {
+                showSection('puzzle');
+            });
+
+
+            // Home page buttons
+            document.getElementById('play-puzzle-btn').addEventListener('click', function() {
+                showSection('puzzle');
+            });
+
+            // Get puzzle elements
+            crosswordGrid = document.getElementById('crossword-grid');
+            solutionGrid = document.getElementById('solution-grid');
+            acrossClues = document.getElementById('across-clues');
+            downClues = document.getElementById('down-clues');
+            solutionAcrossClues = document.getElementById('solution-across-clues');
+            solutionDownClues = document.getElementById('solution-down-clues');
+            acrossQuotes = document.getElementById('across-quotes');
+            downQuotes = document.getElementById('down-quotes');
+            
+            // Get control buttons
+            checkAnswersBtn = document.getElementById('check-answers');
+            resetPuzzleBtn = document.getElementById('reset-puzzle');
+            revealSolutionBtn = document.getElementById('reveal-solution');
+            backToPuzzleBtn = document.getElementById('back-to-puzzle-btn');
+            
+            // Get containers
+            puzzlePlay = document.getElementById('puzzle-play');
+            quotesSection = document.getElementById('quotes-section');
+            
+            // Set up control button event listeners
+            checkAnswersBtn.addEventListener('click', checkAnswers);
+            resetPuzzleBtn.addEventListener('click', resetPuzzle);
+            revealSolutionBtn.addEventListener('click', showSolutionPage);
+            backToPuzzleBtn.addEventListener('click', backToPuzzle);
+            
+            // Set up tab switching for all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabName = this.getAttribute('data-tab');
+                    
+                    // Find the parent tabs container
+                    const tabsContainer = this.parentElement;
+                    
+                    // Deactivate all tabs in this container
+                    tabsContainer.querySelectorAll('.tab').forEach(t => {
+                        t.classList.remove('active');
+                    });
+                    
+                    // Activate clicked tab
+                    this.classList.add('active');
+                    
+                    // Get all tab contents that are siblings of this tabs container
+                    const tabContents = tabsContainer
+
+.parentElement.querySelectorAll('.tab-content');
+                    
+                    // Hide all tab contents
+                    tabContents.forEach(content => {
+                        content.classList.add('hidden');
+                    });
+                    
+                    // Show selected tab content
+                    document.getElementById(tabName).classList.remove('hidden');
+                });
+            });
+            
+            // Initialize the puzzle
+            initPuzzle();
+        });
+
+        // Function to show a section and hide others
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.add('hidden');
+            });
+            
+            // Show the selected section
+            document.getElementById(sectionId).classList.remove('hidden');
+            
+            // Update navigation highlighting
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Find and activate the corresponding nav item
+            document.getElementById('nav-' + sectionId).classList.add('active');
+            
+            // If showing puzzle section, make sure grid is created
+            if (sectionId === 'puzzle' && crosswordGrid.children.length === 0) {
+                createGrid(crosswordGrid);
+                populateClues(acrossClues, downClues);
+            }
+        }
+
+        // Create crossword grid
+        function createGrid(gridElement, isEditable = true) {
+            gridElement.innerHTML = '';
+            
+            puzzleData.grid.forEach(row => {
+                const gridRow = document.createElement('div');
+                gridRow.className = 'grid-row';
+                
+                row.forEach(cell => {
+                    const gridCell = document.createElement('div');
+                    gridCell.className = 'grid-cell';
+                    
+                    if (cell.letter === '#') {
+                        // For solution grid, show empty cells with light gray background
+                        if (!isEditable) {
+                            gridCell.classList.add('empty');
+                            gridCell.style.backgroundColor = '##d9d9d9';
+                        }
+                        // For empty puzzle grid, don't add any content
+                    } else {
+                        if (cell.number !== null) {
+                            const cellNumber = document.createElement('span');
+                            cellNumber.className = 'cell-number';
+                            cellNumber.textContent = cell.number;
+                            gridCell.appendChild(cellNumber);
+                        }
+                        
+                        if (isEditable) {
+                            const input = document.createElement('input');
+                            input.className = 'cell-input';
+                            input.maxLength = 1;
+                            input.setAttribute('data-letter', cell.letter);
+                            gridCell.appendChild(input);
+                        } else {
+                            const cellLetter = document.createElement('span');
+                            cellLetter.className = 'cell-letter';
+                            cellLetter.textContent = cell.letter;
+                            gridCell.appendChild(cellLetter);
+                            
+                            if (cell.number !== null && !gridCell.querySelector('.cell-number')) {
+                                const cellNumber = document.createElement('span');
+                                cellNumber.className = 'cell-number';
+                                cellNumber.textContent = cell.number;
+                                gridCell.appendChild(cellNumber);
+                            }
+                        }
+                    }
+                    
+                    gridRow.appendChild(gridCell);
+                });
+                
+                gridElement.appendChild(gridRow);
+            });
+        }
+
+        // Populate clues
+        function populateClues(acrossElement, downElement) {
+            acrossElement.innerHTML = '';
+            downElement.innerHTML = '';
+            
+            puzzleData.acrossClues.forEach(clue => {
+                const clueItem = document.createElement('div');
+                clueItem.className = 'clue-item';
+                clueItem.innerHTML = `<strong>${clue.number}.</strong> ${clue.clue}`;
+                acrossElement.appendChild(clueItem);
+            });
+            
+            puzzleData.downClues.forEach(clue => {
+                const clueItem = document.createElement('div');
+                clueItem.className = 'clue-item';
+                clueItem.innerHTML = `<strong>${clue.number}.</strong> ${clue.clue}`;
+                downElement.appendChild(clueItem);
+            });
+        }
+
+        // Populate answers
+        function populateAnswers(acrossElement, downElement) {
+            acrossElement.innerHTML = '';
+            downElement.innerHTML = '';
+            
+            puzzleData.acrossClues.forEach(clue => {
+                const answerItem = document.createElement('div');
+                answerItem.className = 'answer-item';
+                answerItem.innerHTML = `<strong>${clue.number}.</strong> ${clue.answer}`;
+                acrossElement.appendChild(answerItem);
+            });
+            
+            puzzleData.downClues.forEach(clue => {
+                const answerItem = document.createElement('div');
+                answerItem.className = 'answer-item';
+                answerItem.innerHTML = `<strong>${clue.number}.</strong> ${clue.answer}`;
+                downElement.appendChild(answerItem);
+            });
+        }
+
+        // Populate quotes
+        function populateQuotes() {
+            acrossQuotes.innerHTML = '';
+            downQuotes.innerHTML = '';
+            
+            puzzleData.acrossClues.forEach(clue => {
+                const quoteItem = document.createElement('div');
+                quoteItem.className = 'quote-item';
+                quoteItem.innerHTML = `<strong>${clue.number}.</strong> ${clue.clue} <br><strong>Answer:</strong> ${clue.answer}`;
+                acrossQuotes.appendChild(quoteItem);
+            });
+            
+            puzzleData.downClues.forEach(clue => {
+                const quoteItem = document.createElement('div');
+                quoteItem.className = 'quote-item';
+                quoteItem.innerHTML = `<strong>${clue.number}.</strong> ${clue.clue} <br><strong>Answer:</strong> ${clue.answer}`;
+                downQuotes.appendChild(quoteItem);
+            });
+        }
+
+        // Check answers
+        function checkAnswers() {
+            const inputs = document.querySelectorAll('.cell-input');
+            
+            inputs.forEach(input => {
+                const correctLetter = input.getAttribute('data-letter');
+                const userLetter = input.value.toUpperCase();
+                
+                if (userLetter === '') {
+                    input.parentElement.classList.remove('correct', 'incorrect');
+                } else if (userLetter === correctLetter) {
+                    input.parentElement.classList.add('correct');
+                    input.parentElement.classList.remove('incorrect');
+                } else {
+                    input.parentElement.classList.add('incorrect');
+                    input.parentElement.classList.remove('correct');
+                }
+            });
+        }
+
+        // Show the separate solution page
+        function showSolutionPage() {
+            // Hide main container
+            mainContainer.classList.add('hidden');
+            
+            // Create solution grid and populate clues
+            createGrid(solutionGrid, false);
+            populateAnswers(solutionAcrossClues, solutionDownClues);
+            
+            // Show solution page
+            solutionPage.classList.remove('hidden');
+        }
+
+        // Go back to the puzzle
+        function backToPuzzle() {
+            // Hide solution page
+            solutionPage.classList.add('hidden');
+            
+            // Show main container
+            mainContainer.classList.remove('hidden');
+        }
+
+        // Show quotes
+        function showQuotes() {
+            populateQuotes();
+            quotesSection.classList.remove('hidden');
+        }
+
+        // Reset puzzle
+        function resetPuzzle() {
+            const inputs = document.querySelectorAll('.cell-input');
+            
+            inputs.forEach(input => {
+                input.value = '';
+                input.parentElement.classList.remove('correct', 'incorrect');
+            });
+            
+            quotesSection.classList.add('hidden');
+        }
+
+        // Initialize puzzle
+        function initPuzzle() {
+            // Initialize main puzzle
+            createGrid(crosswordGrid);
+            populateClues(acrossClues, downClues);
+        }
+    </script>
+</body>
+</html>
